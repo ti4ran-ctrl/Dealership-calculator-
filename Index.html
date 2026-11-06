@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מחשבון מימון רכב מתקדם</title>
+<style>
+:root{
+  --bg:#f3efe4; --card:#ffffff; --header-bg:#262626; --header-text:#ffffff;
+  --accent-dark:#9c7229; --accent:#c89644; --accent-light:#f9e9d2; --accent-input:#fdf8f0;
+  --text:#262626; --text-muted:#6c757d; --border:#d4a55f;
+  --danger-bg:#fde8e8; --danger-text:#c0392b;
+  --success-bg:#e8f5e9; --success-text:#2e7d32;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#181511; --card:#262320; --header-bg:#0f0d0b; --header-text:#f3efe4;
+    --accent-dark:#d8a84f; --accent:#9c7229; --accent-light:#3a3020; --accent-input:#332c1e;
+    --text:#f0ece0; --text-muted:#b7ac92; --border:#6b5020;
+    --danger-bg:#3a1a1a; --danger-text:#ff6b6b;
+    --success-bg:#17311c; --success-text:#7ed382;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#181511; --card:#262320; --header-bg:#0f0d0b; --header-text:#f3efe4;
+  --accent-dark:#d8a84f; --accent:#9c7229; --accent-light:#3a3020; --accent-input:#332c1e;
+  --text:#f0ece0; --text-muted:#b7ac92; --border:#6b5020;
+  --danger-bg:#3a1a1a; --danger-text:#ff6b6b;
+  --success-bg:#17311c; --success-text:#7ed382;
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:"Segoe UI",Arial,Helvetica,sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  min-height:100%;
+}
+.wrap{max-width:480px;margin:0 auto;padding:16px 14px 36px;}
+.hero{background:var(--header-bg);color:var(--header-text);border-radius:14px;padding:18px 16px;text-align:center;margin-bottom:16px;}
+.hero h1{margin:0;font-size:19px;}
+.hero p{margin:6px 0 0;font-size:12px;opacity:.82;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.card h2{margin:0;background:var(--accent);color:#fff;font-size:14.5px;padding:10px 14px;}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-top:1px solid var(--accent-light);}
+.row:first-of-type{border-top:none;}
+.lbl{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:5px;}
+select{
+  font:inherit;font-size:16px;font-weight:600;color:var(--text);
+  background:var(--accent-input);border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px;max-width:50vw;
+}
+.curr-wrap{position:relative;}
+.curr-wrap .sym{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:700;font-size:13px;pointer-events:none;}
+input[type=number]{
+  font:inherit;font-size:16px;font-weight:600;color:var(--text);direction:ltr;text-align:center;
+  background:var(--accent-input);border:1px solid var(--border);border-radius:8px;
+  padding:8px 10px 8px 24px;width:140px;max-width:48vw;
+}
+input[type=number].invalid{border-color:var(--danger-text);}
+.readonly{font-size:14px;font-weight:700;background:var(--accent-light);border-radius:8px;padding:6px 12px;}
+.limit-box{background:var(--accent-light);padding:10px 14px;border-top:1px solid var(--accent-light);}
+.limit-label{font-size:12.5px;font-weight:700;color:var(--accent-dark);margin-bottom:3px;}
+.limit-text{font-size:13px;line-height:1.5;}
+.status{margin:10px 14px;padding:10px 12px;border-radius:8px;font-weight:700;text-align:center;font-size:13.5px;}
+.status.ok{background:var(--success-bg);color:var(--success-text);}
+.status.err{background:var(--danger-bg);color:var(--danger-text);}
+.notes{margin:0;padding:12px 30px 14px;font-size:12.5px;color:var(--text-muted);line-height:1.7;}
+.hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>🚗 מחשבון מימון רכב מתקדם</h1>
+    <p>תכנון וחישוב מותאם אישית למסלולי מימון, בלון ועמלות הקמה ושעבוד</p>
+  </div>
+
+  <div class="card">
+    <h2>⚙️ הגדרות רכב, שנתון ומסלול ריבית</h2>
+    <div class="row">
+      <label class="lbl" for="carType">🚘 סוג הרכב</label>
+      <select id="carType">
+        <option>רכב חדש</option>
+        <option>0 ק״מ</option>
+        <option selected>יד 2</option>
+      </select>
+    </div>
+    <div class="row" id="yearRow">
+      <label class="lbl" for="carYear">📅 שנתון הרכב (יד 2)</label>
+      <select id="carYear"></select>
+    </div>
+    <div class="row">
+      <label class="lbl" for="rateTrack">📈 מסלול ריבית</label>
+      <select id="rateTrack"><option>פריים</option><option>מדד</option></select>
+    </div>
+    <div class="row">
+      <span class="lbl">🏷️ תיאור הריבית במסלול</span>
+      <span class="readonly" id="rateDesc"></span>
+    </div>
+    <div class="limit-box">
+      <div class="limit-label">⚠️ מגבלות מסלול ושנתון</div>
+      <div class="limit-text" id="limitsText"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 פרטי העסקה, חישוב התשלום ועמלות</h2>
+    <div class="row">
+      <label class="lbl" for="basePrice">🏷️ מחיר מחירון בסיס (לאחר הפחתות)</label>
+      <div class="curr-wrap"><span class="sym">₪</span><input type="number" id="basePrice" value="120000" min="0"></div>
+    </div>
+    <div class="row">
+      <label class="lbl" for="loanAmount">💰 סכום ההלוואה</label>
+      <div class="curr-wrap"><span class="sym">₪</span><input type="number" id="loanAmount" value="100000" min="0"></div>
+    </div>
+    <div class="row">
+      <label class="lbl" for="months">📅 תקופת ההלוואה (בחודשים)</label>
+      <input type="number" id="months" value="60" min="1" style="padding-left:10px;">
+    </div>
+    <div class="row">
+      <label class="lbl" for="balloon">🎈 סכום הבלון בסוף התקופה</label>
+      <div class="curr-wrap"><span class="sym">₪</span><input type="number" id="balloon" value="30000" min="0"></div>
+    </div>
+    <div class="status" id="statusBox"></div>
+    <div class="row">
+      <span class="lbl">תשלום חודשי</span>
+      <span class="readonly" id="monthlyPay"></span>
+    </div>
+    <div class="row">
+      <span class="lbl">📄 עמלת הקמה ושעבוד ומשכון</span>
+      <span class="readonly" id="fee"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📌 הערות</h2>
+    <ul class="notes">
+      <li>ההצעה כפופה לאישור הגוף המממן</li>
+      <li>הסימולציה להמחשה בלבד והנתונים יכולים להשתנות בהתאם ללקוח ובהתאם לגוף המממן</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const LIMITS = {
+  2016:{tiers:[[24,0]], text:'ללא בלון , עד 24 תשלומים'},
+  2017:{tiers:[[36,0]], text:'ללא בלון , עד 36 תשלומים'},
+  2018:{tiers:[[36,.35],[48,.30]], text:'48 תשלומים/30% בלון, 36 תשלומים/35% בלון, עד 48 תשלומים'},
+  2019:{tiers:[[36,.35],[48,.30],[60,0]], text:'48 תשלומים/30% בלון, 36 תשלומים/35% בלון, עד 60 תשלומים'},
+  2020:{tiers:[[36,.50],[48,.40],[72,0]], text:'48 תשלומים/ 40% בלון, 36 תשלומים 50% בלון, עד 72 תשלומים'},
+  2021:{tiers:[[48,.40],[60,.35],[84,0]], text:'60 תשלומים/ 35% בלון, 48 תשלומים/ 40% בלון, עד 84 תשלומים'},
+  2022:{tiers:[[48,.50],[60,.40],[84,0]], text:'60 תשלומים/40% בלון, 48 תשלומים/ 50% בלון, עד 84 תשלומים'},
+  2023:{tiers:[[60,.50],[99,0]], text:'60 תשלומים/50% בלון, עד 99 תשלומים'},
+  2024:{tiers:[[60,.50],[99,0]], text:'60 תשלומים/50% בלון, עד 99 תשלומים'},
+  2025:{tiers:[[60,.50],[99,0]], text:'60 תשלומים/50% בלון, עד 99 תשלומים'},
+  2026:{tiers:[[60,.50],[99,0]], text:'60 תשלומים/50% בלון, עד 99 תשלומים'}
+};
+const yearSel=document.getElementById('carYear');
+Object.keys(LIMITS).forEach(y=>{
+  const o=document.createElement('option'); o.value=y; o.textContent=y;
+  if(y==='2019') o.selected=true;
+  yearSel.appendChild(o);
+});
+
+const el=id=>document.getElementById(id);
+const carType=el('carType'), yearRow=el('yearRow'), rateTrack=el('rateTrack');
+const rateDesc=el('rateDesc'), limitsText=el('limitsText'), statusBox=el('statusBox');
+const basePrice=el('basePrice'), loanAmount=el('loanAmount'), months=el('months'), balloon=el('balloon');
+const monthlyPay=el('monthlyPay'), fee=el('fee');
+
+function fmt(n,dec){
+  if(!isFinite(n)) n=0;
+  return '₪ '+n.toLocaleString('he-IL',{minimumFractionDigits:dec||0,maximumFractionDigits:dec||0});
+}
+function rateInfo(type,track){
+  if(type==='רכב חדש') return track==='פריים'?['פריים (4.75%) + 1.1%',0.0585]:['4.4%',0.044];
+  if(type==='0 ק״מ') return track==='פריים'?['פריים (4.75%) + 1.7%',0.0645]:['4.8%',0.048];
+  return track==='פריים'?['פריים (4.75%) + 3.25%',0.08]:['6.0%',0.06];
+}
+function maxMonths(y){ return Math.max(...LIMITS[y].tiers.map(t=>t[0])); }
+function maxBalloonPct(y,m){
+  let best=0;
+  LIMITS[y].tiers.forEach(([tm,tp])=>{ if(tm>=m) best=Math.max(best,tp); });
+  return best;
+}
+function calc(){
+  const type=carType.value, isUsed=type==='יד 2';
+  yearRow.classList.toggle('hidden',!isUsed);
+  const[desc,rate]=rateInfo(type,rateTrack.value);
+  rateDesc.textContent=desc;
+
+  const m=Number(months.value)||0;
+  let maxM,maxPct,lt;
+  if(!isUsed){ lt='אין הגבלת שנתון לחדש / 0 ק״מ (עד 99 תשלומים | עד 50% בלון)'; maxM=99; maxPct=0.5; }
+  else{
+    const y=Number(yearSel.value);
+    lt=LIMITS[y]?LIMITS[y].text:'נא לבחור שנתון תקין';
+    maxM=LIMITS[y]?maxMonths(y):0;
+    maxPct=LIMITS[y]?maxBalloonPct(y,m):0;
+  }
+  limitsText.textContent=lt;
+
+  const price=Number(basePrice.value)||0, loan=Number(loanAmount.value)||0, bln=Number(balloon.value)||0;
+  let msg,cls;
+  if(m>maxM){ msg=`⛔ תקופת ההלוואה חורגת מהמותר: עד ${maxM} תשלומים`; cls='err'; }
+  else if(bln>price*maxPct+0.005){
+    msg = maxPct===0 ? `⛔ בתקופה של ${m} תשלומים לא ניתן בלון`
+      : `⛔ הבלון חורג: ל-${m} תשלומים מותר עד ${(maxPct*100).toFixed(0)}% (${fmt(price*maxPct)})`;
+    cls='err';
+  } else { msg='✅ התקופה והבלון בהתאם לטבלת המגבלות'; cls='ok'; }
+  statusBox.textContent=msg; statusBox.className='status '+cls;
+  balloon.classList.toggle('invalid', cls==='err');
+
+  const mr=rate/12, principal=loan-bln;
+  const amort = m ? (mr===0 ? principal/m : (mr*principal)/(1-Math.pow(1+mr,-m))) : 0;
+  monthlyPay.textContent=fmt(amort+bln*mr,2);
+  fee.textContent=fmt((loan*0.015+380)*1.18,2);
+}
+[carType,yearSel,rateTrack,basePrice,loanAmount,months,balloon].forEach(e=>{
+  e.addEventListener('input',calc); e.addEventListener('change',calc);
+});
+calc();
+</script>
+</body>
+</html>
